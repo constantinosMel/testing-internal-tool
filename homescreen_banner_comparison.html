@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Banner Visualizer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .header {
+            background-color: #46178f;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .rule-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .rule-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+        .rule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            cursor: pointer;
+        }
+        .rule-description {
+            font-weight: 600;
+            color: #46178f;
+            font-size: 1.2rem;
+        }
+        .rule-content {
+            display: none; /* Start collapsed */
+        }
+        .rule-toggle {
+            color: #46178f;
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+        .rule-toggle.expanded {
+            transform: rotate(180deg);
+        }
+        .rule-order {
+            display: inline-block;
+            background-color: #46178f;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            margin-right: 10px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .condition-group {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .condition {
+            margin-bottom: 5px;
+            padding: 8px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        .output {
+            background-color: #e6f7ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        .output-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .weight-badge {
+            background-color: #46178f;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin-right: 10px;
+        }
+        .banner-preview {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            background-color: white;
+        }
+        .device-previews {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        .device-preview {
+            flex: 1;
+            min-width: 300px;
+            overflow-x: auto;
+        }
+        .device-label {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-bottom: 8px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+        .device-icon {
+            margin-right: 5px;
+        }
+        .search-container {
+            margin-bottom: 20px;
+        }
+        .filter-badge {
+            background-color: #46178f;
+            color: white;
+            margin-right: 5px;
+            cursor: pointer;
+        }
+        .banner-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        .split-info {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        #banner-modal .modal-body {
+            padding: 20px;
+        }
+        .modal-banner-preview {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: left;
+        }
+        .modal-banner-image {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .modal-banner-buttons {
+            margin-top: 15px;
+        }
+        .modal-dialog {
+            max-width: 1000px;
+        }
+        .json-input-container {
+            margin-bottom: 20px;
+            display: none;
+        }
+        .json-textarea {
+            width: 100%;
+            height: 200px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+        .toggle-json-input {
+            margin-bottom: 10px;
+        }
+        .environment-label {
+            font-weight: bold;
+            color: #46178f;
+            margin-bottom: 5px;
+        }
+        .comparison-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .environment-column {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+            overflow: visible;
+            padding: 0 5px;
+        }
+        .environment-header {
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+        .qa-color {
+            border-color: #28a745;
+            color: #28a745;
+        }
+        .prod-color {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+        .rule-card.qa-rule {
+            border-left: 3px solid #28a745;
+        }
+        .rule-card.prod-rule {
+            border-left: 3px solid #dc3545;
+        }
+        .rule-card.matching-rule {
+            border-left: 3px solid #17a2b8;
+        }
+        .rule-card.different-rule {
+            border-left: 3px solid #ffc107;
+            background-color: #fff8e1;
+        }
+        .rule-card.unique-rule {
+            border-left: 3px solid #6c757d;
+            background-color: #f8f9fa;
+        }
+        .comparison-badge {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            margin-left: 8px;
+        }
+        .device-preview {
+            flex: 1;
+            min-width: 300px;
+            overflow-x: auto;
+            max-width: 100%;
+        }
+        .banner-preview {
+            overflow-x: auto;
+            max-width: 100%;
+        }
+        .rule-content {
+            max-width: 100%;
+            overflow-x: auto;
+        }
+        .device-previews {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 15px;
+            max-width: 100%;
+        }
+        /* Fix for expanded content */
+        .rule-card.expanded {
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        /* Ensure images don't overflow */
+        img.banner-image, img.w-100 {
+            max-width: 100%;
+            height: auto;
+        }
+        #qa-rules-container, #prod-rules-container {
+            position: relative;
+            overflow: visible;
+        }
+        .view-mode-toggle {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+        }
+        .view-mode-toggle .btn-group {
+            margin-bottom: 10px;
+        }
+        .single-view-container {
+            width: 100%;
+        }
+        .single-view-header {
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #46178f;
+            font-weight: 600;
+            color: #46178f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header text-center">
+            <h1>Mobile App Banner Visualizer</h1>
+            <p class="lead">Compare banners between QA and Production environments</p>
+            <button id="toggle-json-input" class="btn btn-sm btn-outline-secondary">Paste JSON Data</button>
+        </div>
+
+        <div id="json-input-container" class="json-input-container">
+            <div class="alert alert-info">
+                Paste your JSON data below and click "Load JSON" to visualize the banners.
+            </div>
+            
+            <div class="mb-3">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="viewMode" id="compareMode" value="compare" checked>
+                    <label class="form-check-label" for="compareMode">Compare Two Environments</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="viewMode" id="singleMode" value="single">
+                    <label class="form-check-label" for="singleMode">View Single Environment</label>
+                </div>
+            </div>
+            
+            <div id="compare-inputs" class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="environment-label">QA Environment</div>
+                    <textarea id="json-textarea-qa" class="json-textarea" placeholder='Paste your QA JSON data here...'></textarea>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="environment-label">Production Environment</div>
+                    <textarea id="json-textarea-prod" class="json-textarea" placeholder='Paste your Production JSON data here...'></textarea>
+                </div>
+            </div>
+            
+            <div id="single-input" class="row" style="display: none;">
+                <div class="col-12 mb-3">
+                    <div class="environment-label">JSON Data</div>
+                    <textarea id="json-textarea-single" class="json-textarea" placeholder='Paste your JSON data here...'></textarea>
+                </div>
+            </div>
+            
+            <div class="mt-2 d-flex justify-content-between">
+                <button id="load-json-btn" class="btn btn-primary">Load JSON</button>
+                <button id="hide-json-input" class="btn btn-outline-secondary">Hide</button>
+            </div>
+        </div>
+
+        <div class="search-container">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <input type="text" id="search-input" class="form-control" placeholder="Search by description, condition, or banner ID...">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="d-flex flex-wrap" id="filter-tags">
+                        <!-- Filter tags will be added here dynamically -->
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-12">
+                    <button class="btn btn-sm btn-outline-secondary me-2" data-filter="app_store">app_store</button>
+                    <button class="btn btn-sm btn-outline-secondary me-2" data-filter="app_version">app_version</button>
+                    <button class="btn btn-sm btn-outline-secondary me-2" data-filter="primary_usage">primary_usage</button>
+                    <button class="btn btn-sm btn-outline-secondary me-2" data-filter="signup_platform">signup_platform</button>
+                    <button class="btn btn-sm btn-outline-secondary me-2" data-filter="product">product</button>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div id="dynamic-filters" class="d-flex flex-wrap">
+                        <!-- Dynamic filter buttons will be added here based on the loaded data -->
+                    </div>
+                    <div class="alert alert-info mt-2 small">
+                        Additional filter buttons will appear above based on the conditions in your loaded data.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="rules-container">
+            <!-- Rules will be loaded here -->
+            <div class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Waiting for JSON data...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Banner Preview Modal -->
+    <div class="modal fade" id="banner-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Banner Preview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="modal-banner-content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Setup JSON input functionality
+            const toggleJsonBtn = document.getElementById('toggle-json-input');
+            const jsonInputContainer = document.getElementById('json-input-container');
+            const hideJsonBtn = document.getElementById('hide-json-input');
+            const loadJsonBtn = document.getElementById('load-json-btn');
+            const jsonTextareaQA = document.getElementById('json-textarea-qa');
+            const jsonTextareaProd = document.getElementById('json-textarea-prod');
+            const jsonTextareaSingle = document.getElementById('json-textarea-single');
+            const compareMode = document.getElementById('compareMode');
+            const singleMode = document.getElementById('singleMode');
+            const compareInputs = document.getElementById('compare-inputs');
+            const singleInput = document.getElementById('single-input');
+            
+            // Toggle between comparison and single view modes
+            compareMode.addEventListener('change', () => {
+                if (compareMode.checked) {
+                    compareInputs.style.display = 'flex';
+                    singleInput.style.display = 'none';
+                }
+            });
+            
+            singleMode.addEventListener('change', () => {
+                if (singleMode.checked) {
+                    compareInputs.style.display = 'none';
+                    singleInput.style.display = 'flex';
+                }
+            });
+            
+            // Show JSON input by default
+            jsonInputContainer.style.display = 'block';
+            toggleJsonBtn.style.display = 'none';
+            
+            // Clear the loading message and show prompt to paste JSON
+            const rulesContainer = document.getElementById('rules-container');
+            rulesContainer.innerHTML = `
+                <div class="alert alert-info">
+                    No data loaded. Please paste your JSON data for both environments above and click "Compare".
+                </div>
+            `;
+            
+            toggleJsonBtn.addEventListener('click', () => {
+                jsonInputContainer.style.display = 'block';
+                toggleJsonBtn.style.display = 'none';
+            });
+            
+            hideJsonBtn.addEventListener('click', () => {
+                jsonInputContainer.style.display = 'none';
+                toggleJsonBtn.style.display = 'inline-block';
+            });
+            
+            loadJsonBtn.addEventListener('click', () => {
+                let jsonData = null;
+                let isSingleMode = singleMode.checked;
+                
+                try {
+                    if (isSingleMode) {
+                        const jsonText = jsonTextareaSingle.value.trim();
+                        if (!jsonText) {
+                            alert('Please paste JSON data first.');
+                            return;
+                        }
+                        jsonData = JSON.parse(jsonText);
+                        
+                        // Clear previous content
+                        rulesContainer.innerHTML = '';
+                        
+                        // Render single view
+                        renderSingleView(jsonData);
+                    } else {
+                        const jsonTextQA = jsonTextareaQA.value.trim();
+                        const jsonTextProd = jsonTextareaProd.value.trim();
+                        
+                        if (!jsonTextQA && !jsonTextProd) {
+                            alert('Please paste JSON data for at least one environment.');
+                            return;
+                        }
+                        
+                        // Parse both environments' data
+                        let qaData = null;
+                        let prodData = null;
+                        
+                        if (jsonTextQA) {
+                            qaData = JSON.parse(jsonTextQA);
+                        }
+                        
+                        if (jsonTextProd) {
+                            prodData = JSON.parse(jsonTextProd);
+                        }
+                        
+                        // Clear previous content
+                        rulesContainer.innerHTML = '';
+                        
+                        // Render comparison
+                        renderComparison(qaData, prodData);
+                    }
+                    
+                    // Hide JSON input after successful load
+                    jsonInputContainer.style.display = 'none';
+                    toggleJsonBtn.style.display = 'inline-block';
+                    
+                    // Show success message
+                    const successAlert = document.createElement('div');
+                    successAlert.className = 'alert alert-success mb-3';
+                    successAlert.textContent = 'JSON data loaded successfully!';
+                    rulesContainer.insertBefore(successAlert, rulesContainer.firstChild);
+                    
+                    // Auto-remove success message after 3 seconds
+                    setTimeout(() => {
+                        if (successAlert.parentNode) {
+                            successAlert.remove();
+                        }
+                    }, 3000);
+                    
+                } catch (error) {
+                    alert(`Error parsing JSON: ${error.message}`);
+                }
+            });
+            
+            function renderComparison(qaData, prodData) {
+                const rulesContainer = document.getElementById('rules-container');
+                
+                // Create comparison container
+                const comparisonContainer = document.createElement('div');
+                comparisonContainer.className = 'comparison-container';
+                
+                // Create columns for each environment
+                const qaColumn = document.createElement('div');
+                qaColumn.className = 'environment-column';
+                qaColumn.innerHTML = `
+                    <div class="environment-header qa-color">
+                        QA Environment ${qaData ? `(${qaData.rules.length} rules)` : '(No data)'}
+                    </div>
+                    <div id="qa-rules-container"></div>
+                `;
+                
+                const prodColumn = document.createElement('div');
+                prodColumn.className = 'environment-column';
+                prodColumn.innerHTML = `
+                    <div class="environment-header prod-color">
+                        Production Environment ${prodData ? `(${prodData.rules.length} rules)` : '(No data)'}
+                    </div>
+                    <div id="prod-rules-container"></div>
+                `;
+                
+                comparisonContainer.appendChild(qaColumn);
+                comparisonContainer.appendChild(prodColumn);
+                rulesContainer.appendChild(comparisonContainer);
+                
+                // Extract unique condition values from the data
+                const conditionValues = new Set();
+                
+                // Function to extract condition values from rules
+                const extractConditionValues = (data) => {
+                    if (!data || !data.rules) return;
+                    
+                    data.rules.forEach(rule => {
+                        if (!rule.cases) return;
+                        
+                        rule.cases.forEach(caseItem => {
+                            if (!caseItem.conditions) return;
+                            
+                            caseItem.conditions.forEach(condition => {
+                                if (condition.lv) {
+                                    conditionValues.add(condition.lv);
+                                }
+                            });
+                        });
+                    });
+                };
+                
+                // Extract condition values from both datasets
+                if (qaData) extractConditionValues(qaData);
+                if (prodData) extractConditionValues(prodData);
+                
+                // If we have both environments, analyze and mark differences
+                if (qaData && prodData) {
+                    // Create maps for faster lookup
+                    const qaRulesMap = new Map();
+                    const prodRulesMap = new Map();
+                    
+                    // Track which rules have matches
+                    const qaMatched = new Set();
+                    const prodMatched = new Set();
+                    
+                    // Map rules by description for matching
+                    qaData.rules.forEach((rule, index) => {
+                        qaRulesMap.set(rule.description || `Unnamed Rule ${index}`, { rule, index });
+                    });
+                    
+                    prodData.rules.forEach((rule, index) => {
+                        prodRulesMap.set(rule.description || `Unnamed Rule ${index}`, { rule, index });
+                    });
+                    
+                    // Render QA rules with comparison info
+                    qaData.rules.forEach((rule, index) => {
+                        const ruleKey = rule.description || `Unnamed Rule ${index}`;
+                        const matchingProdRule = prodRulesMap.get(ruleKey);
+                        
+                        let comparisonClass = 'unique-rule';
+                        let comparisonBadge = '<span class="badge bg-secondary comparison-badge">Only in QA</span>';
+                        
+                        if (matchingProdRule) {
+                            // Mark as matched
+                            qaMatched.add(index);
+                            prodMatched.add(matchingProdRule.index);
+                            
+                            // Check if rules are identical
+                            const isIdentical = JSON.stringify(rule) === JSON.stringify(matchingProdRule.rule);
+                            
+                            if (isIdentical) {
+                                comparisonClass = 'matching-rule';
+                                comparisonBadge = '<span class="badge bg-info comparison-badge">Identical</span>';
+                            } else {
+                                comparisonClass = 'different-rule';
+                                comparisonBadge = '<span class="badge bg-warning comparison-badge">Different</span>';
+                            }
+                        }
+                        
+                        renderRule(qaData, rule, index, 'qa-rules-container', `qa-rule ${comparisonClass}`, comparisonBadge);
+                    });
+                    
+                    // Render Production rules with comparison info
+                    prodData.rules.forEach((rule, index) => {
+                        const ruleKey = rule.description || `Unnamed Rule ${index}`;
+                        const matchingQARule = qaRulesMap.get(ruleKey);
+                        
+                        let comparisonClass = 'unique-rule';
+                        let comparisonBadge = '<span class="badge bg-secondary comparison-badge">Only in Production</span>';
+                        
+                        if (matchingQARule) {
+                            // Already rendered the matching ones in QA section
+                            const isIdentical = JSON.stringify(rule) === JSON.stringify(matchingQARule.rule);
+                            
+                            if (isIdentical) {
+                                comparisonClass = 'matching-rule';
+                                comparisonBadge = '<span class="badge bg-info comparison-badge">Identical</span>';
+                            } else {
+                                comparisonClass = 'different-rule';
+                                comparisonBadge = '<span class="badge bg-warning comparison-badge">Different</span>';
+                            }
+                        }
+                        
+                        renderRule(prodData, rule, index, 'prod-rules-container', `prod-rule ${comparisonClass}`, comparisonBadge);
+                    });
+                } else {
+                    // Just render what we have without comparison
+                    if (qaData) {
+                        qaData.rules.forEach((rule, index) => {
+                            renderRule(qaData, rule, index, 'qa-rules-container', 'qa-rule');
+                        });
+                    } else {
+                        document.getElementById('qa-rules-container').innerHTML = `
+                            <div class="alert alert-secondary">No QA data provided</div>
+                        `;
+                    }
+                    
+                    if (prodData) {
+                        prodData.rules.forEach((rule, index) => {
+                            renderRule(prodData, rule, index, 'prod-rules-container', 'prod-rule');
+                        });
+                    } else {
+                        document.getElementById('prod-rules-container').innerHTML = `
+                            <div class="alert alert-secondary">No Production data provided</div>
+                        `;
+                    }
+                }
+                
+                // Add dynamic filter buttons based on extracted condition values
+                const dynamicFiltersContainer = document.getElementById('dynamic-filters');
+                
+                // Add additional filter buttons for condition values not already present
+                conditionValues.forEach(value => {
+                    // Skip values that already have filter buttons
+                    if (document.querySelector(`[data-filter="${value}"]`)) return;
+                    
+                    const button = document.createElement('button');
+                    button.className = 'btn btn-sm btn-outline-secondary me-2';
+                    button.dataset.filter = value;
+                    button.textContent = value;
+                    dynamicFiltersContainer.appendChild(button);
+                });
+                
+                // Setup search and filter functionality
+                setupSearch();
+                setupFilterButtons();
+            }
+            
+            function renderSingleView(data) {
+                const rulesContainer = document.getElementById('rules-container');
+                
+                // Create single view container
+                const singleViewContainer = document.createElement('div');
+                singleViewContainer.className = 'single-view-container';
+                
+                // Create header
+                const header = document.createElement('div');
+                header.className = 'single-view-header';
+                header.innerHTML = `
+                    <div>Rules (${data.rules.length})</div>
+                `;
+                
+                // Create rules container
+                const rulesContent = document.createElement('div');
+                rulesContent.id = 'single-rules-container';
+                
+                singleViewContainer.appendChild(header);
+                singleViewContainer.appendChild(rulesContent);
+                rulesContainer.appendChild(singleViewContainer);
+                
+                // Extract unique condition values from the data
+                const conditionValues = new Set();
+                
+                // Extract condition values from rules
+                if (data && data.rules) {
+                    data.rules.forEach(rule => {
+                        if (!rule.cases) return;
+                        
+                        rule.cases.forEach(caseItem => {
+                            if (!caseItem.conditions) return;
+                            
+                            caseItem.conditions.forEach(condition => {
+                                if (condition.lv) {
+                                    conditionValues.add(condition.lv);
+                                }
+                            });
+                        });
+                    });
+                }
+                
+                // Render rules
+                data.rules.forEach((rule, index) => {
+                    renderRule(data, rule, index, 'single-rules-container');
+                });
+                
+                // Add dynamic filter buttons based on extracted condition values
+                const dynamicFiltersContainer = document.getElementById('dynamic-filters');
+                
+                // Add additional filter buttons for condition values not already present
+                conditionValues.forEach(value => {
+                    // Skip values that already have filter buttons
+                    if (document.querySelector(`[data-filter="${value}"]`)) return;
+                    
+                    const button = document.createElement('button');
+                    button.className = 'btn btn-sm btn-outline-secondary me-2';
+                    button.dataset.filter = value;
+                    button.textContent = value;
+                    dynamicFiltersContainer.appendChild(button);
+                });
+                
+                // Setup search and filter functionality
+                setupSearch();
+                setupFilterButtons();
+            }
+            
+            function renderRule(data, rule, index, containerId, additionalClasses = '', comparisonBadge = '') {
+                const rulesContainer = document.getElementById(containerId);
+                const dictionary = data.dictionary;
+                
+                const ruleCard = document.createElement('div');
+                ruleCard.className = `rule-card ${additionalClasses}`;
+                ruleCard.dataset.ruleIndex = index;
+                ruleCard.style.position = 'relative';
+                
+                // Rule header with description
+                const ruleHeader = document.createElement('div');
+                ruleHeader.className = 'rule-header';
+                ruleHeader.innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <span class="rule-order">${index + 1}</span>
+                        <div class="rule-description">${rule.description || 'Unnamed Rule'} ${comparisonBadge}</div>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="rule-meta me-3">
+                            <span class="badge bg-secondary">Rule #${index + 1}</span>
+                            <span class="badge bg-info">Split: ${rule.splitOn}</span>
+                        </div>
+                        <div class="rule-toggle">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                `;
+                ruleCard.appendChild(ruleHeader);
+                
+                // Create a container for the collapsible content
+                const ruleContent = document.createElement('div');
+                ruleContent.className = 'rule-content';
+                ruleCard.appendChild(ruleContent);
+                
+                // Add click event to toggle collapse
+                ruleHeader.addEventListener('click', () => {
+                    const toggle = ruleHeader.querySelector('.rule-toggle');
+                    toggle.classList.toggle('expanded');
+                    
+                    if (ruleContent.style.display === 'none' || ruleContent.style.display === '') {
+                        ruleContent.style.display = 'block';
+                        ruleCard.style.zIndex = '10'; // Bring to front when expanded
+                        ruleCard.classList.add('expanded');
+                    } else {
+                        ruleContent.style.display = 'none';
+                        ruleCard.style.zIndex = '1'; // Reset z-index when collapsed
+                        ruleCard.classList.remove('expanded');
+                    }
+                });
+                
+                // Conditions
+                const conditionsContainer = document.createElement('div');
+                conditionsContainer.className = 'conditions-container';
+                
+                rule.cases.forEach((caseItem, caseIndex) => {
+                    const conditionGroup = document.createElement('div');
+                    conditionGroup.className = 'condition-group';
+                    conditionGroup.innerHTML = `<div class="fw-bold mb-2">Case ${caseIndex + 1}:</div>`;
+                    
+                    caseItem.conditions.forEach(condition => {
+                        const conditionElement = document.createElement('div');
+                        conditionElement.className = 'condition';
+                        
+                        let operator = condition.op;
+                        switch(operator) {
+                            case 'IN': operator = 'is in'; break;
+                            case 'NOTIN': operator = 'is not in'; break;
+                            case 'LT': operator = 'is less than'; break;
+                            case 'GT': operator = 'is greater than'; break;
+                            case 'GE': operator = 'is greater than or equal to'; break;
+                            case 'LE': operator = 'is less than or equal to'; break;
+                        }
+                        
+                        conditionElement.innerHTML = `
+                            <span class="text-primary">${condition.lv}</span> 
+                            <span class="text-secondary">${operator}</span> 
+                            <span class="text-success">${condition.rv.join(', ') || '""'}</span>
+                        `;
+                        conditionGroup.appendChild(conditionElement);
+                    });
+                    
+                    conditionsContainer.appendChild(conditionGroup);
+                });
+                
+                ruleContent.appendChild(conditionsContainer);
+                
+                // Outputs
+                const outputsContainer = document.createElement('div');
+                outputsContainer.className = 'output';
+                outputsContainer.innerHTML = `<div class="fw-bold mb-2">Outputs:</div>`;
+                
+                rule.outputs.forEach(output => {
+                    const outputItem = document.createElement('div');
+                    outputItem.className = 'output-item';
+                    
+                    // Find the banner in the dictionary
+                    const banner = dictionary.find(item => item.id === output.entryId);
+                    const bannerName = banner ? banner.label : `Unknown (ID: ${output.entryId})`;
+                    
+                    outputItem.innerHTML = `
+                        <span class="weight-badge">${output.weight}%</span>
+                        <span>${bannerName}</span>
+                    `;
+                    
+                    outputsContainer.appendChild(outputItem);
+                    
+                    // Add banner preview if available
+                    if (banner) {
+                        try {
+                            const bannerValue = JSON.parse(banner.value);
+                            const bannerPreview = document.createElement('div');
+                            bannerPreview.className = 'banner-preview mt-2';
+                            bannerPreview.dataset.bannerId = banner.id;
+                            bannerPreview.dataset.bannerLabel = banner.label;
+                            
+                            // Get default language or first available
+                            const defaultLang = bannerValue.default_override || 'en';
+                            const bannerContent = bannerValue.overrides[defaultLang] || {};
+                            const baseContent = bannerValue.base || {};
+                            
+                            let previewHTML = `<div class="fw-bold">${bannerName} (ID: ${banner.id})</div>`;
+                            
+                            // Create device previews container
+                            previewHTML += `<div class="device-previews">`;
+                            
+                            // Check if this is a layout_generic banner
+                            if (baseContent.layout === 'layout_generic') {
+                                // Mobile preview
+                                previewHTML += `
+                                    <div class="device-preview">
+                                        <div class="device-label">
+                                            <span class="device-icon">📱</span> Mobile (414px)
+                                        </div>
+                                        <div class="position-relative">
+                                            <div style="position: relative; overflow: hidden; border-radius: 4px; width: 414px; max-width: 100%; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+                                                ${baseContent.image_url ? 
+                                                    `<img src="${baseContent.image_url}" alt="${bannerName}" class="banner-image w-100" style="filter: brightness(0.9); width: 414px; object-fit: cover; object-position: top left;">` : 
+                                                    `<div style="height: 168px; background-color: #333; border-radius: 4px; width: 414px;"></div>`
+                                                }
+                                                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; padding: 0 16px; display: flex; flex-direction: column; justify-content: flex-start;">
+                                                    ${bannerContent.title ? 
+                                                        `<div style="margin-top: 40px; max-width: 214px; text-align: left;">
+                                                            <h3 style="color: white; font-weight: bold; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); margin-bottom: 8px; font-size: 16px; line-height: 1.2;">${bannerContent.title}</h3>
+                                                        </div>` : ''
+                                                    }
+                                                    ${bannerContent.description ? 
+                                                        `<div style="max-width: 214px; text-align: left;">
+                                                            <p style="color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); font-size: 14px; line-height: 1.3; font-weight: 500;">${bannerContent.description}</p>
+                                                        </div>` : ''
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Tablet preview -->
+                                    <div class="device-preview">
+                                        <div class="device-label">
+                                            <span class="device-icon">📋</span> Tablet (944px)
+                                        </div>
+                                        <div class="position-relative">
+                                            <div style="position: relative; overflow: hidden; border-radius: 4px; width: 944px; max-width: 100%; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+                                                ${baseContent.image_url_tablet || baseContent.image_url ? 
+                                                    `<img src="${baseContent.image_url_tablet || baseContent.image_url}" alt="${bannerName}" class="banner-image w-100" style="filter: brightness(0.9); width: 944px; height: 168px; object-fit: cover; object-position: top left;">` : 
+                                                    `<div style="height: 168px; background-color: #333; border-radius: 4px; width: 944px;"></div>`
+                                                }
+                                                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; padding: 0 24px; display: flex; flex-direction: column; justify-content: flex-start;">
+                                                    ${bannerContent.title ? 
+                                                        `<div style="margin-top: 40px; max-width: 400px; text-align: left;">
+                                                            <h3 style="color: white; font-weight: bold; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); margin-bottom: 8px; font-size: 18px; line-height: 1.2;">${bannerContent.title}</h3>
+                                                        </div>` : ''
+                                                    }
+                                                    ${bannerContent.description ? 
+                                                        `<div style="max-width: 400px; text-align: left;">
+                                                            <p style="color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); font-size: 16px; line-height: 1.3; font-weight: 500;">${bannerContent.description}</p>
+                                                        </div>` : ''
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            } else if (baseContent.layout === 'layout_closable') {
+                                // Mobile preview
+                                previewHTML += `
+                                    <div class="device-preview">
+                                        <div class="device-label">
+                                            <span class="device-icon">📱</span> Mobile (414px)
+                                        </div>
+                                        <div class="position-relative">
+                                            <div style="position: relative; overflow: hidden; border-radius: 4px; width: 414px; max-width: 100%; box-shadow: 0 2px 8px rgba(0,0,0,0.2); background-color: white; padding: 24px 16px 16px 16px;">
+                                                <!-- Close button -->
+                                                <div style="position: absolute; top: 8px; right: 12px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#6c757d" viewBox="0 0 16 16">
+                                                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                                                    </svg>
+                                                </div>
+                                                
+                                                <!-- Content layout -->
+                                                <div style="display: flex; flex-direction: row; gap: 16px;">
+                                                    <!-- Image (if available) -->
+                                                    ${baseContent.image_url ? 
+                                                        `<div style="flex-shrink: 0;">
+                                                            <img src="${baseContent.image_url}" alt="${bannerName}" style="width: 88px; height: 88px; object-fit: cover; border-radius: 4px;">
+                                                        </div>` : ''
+                                                    }
+                                                    
+                                                    <!-- Text content -->
+                                                    <div style="display: flex; flex-direction: column; flex-grow: 1; max-width: ${baseContent.image_url ? 'calc(100% - 104px)' : '100%'};">
+                                                        ${bannerContent.title ? 
+                                                            `<h3 style="color: #212529; font-weight: bold; margin-bottom: 8px; font-size: 16px; line-height: 1.2;">${bannerContent.title}</h3>` : ''
+                                                        }
+                                                        ${bannerContent.description ? 
+                                                            `<p style="color: #6c757d; font-size: 14px; line-height: 1.3; font-weight: 500; margin-bottom: 16px;">${bannerContent.description}</p>` : ''
+                                                        }
+                                                        
+                                                        <!-- Buttons -->
+                                                        <div style="display: flex; gap: 8px; margin-top: auto;">
+                                                            ${bannerContent.button ? 
+                                                                `<button class="btn btn-sm btn-primary" style="font-weight: 500; padding: 6px 12px; min-height: 32px;">${bannerContent.button}</button>` : ''
+                                                            }
+                                                            ${bannerContent.button_2_text ? 
+                                                                `<button class="btn btn-sm btn-light" style="font-weight: 500; padding: 6px 12px; min-height: 32px;">${bannerContent.button_2_text}</button>` : ''
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Tablet preview -->
+                                    <div class="device-preview">
+                                        <div class="device-label">
+                                            <span class="device-icon">📋</span> Tablet (944px)
+                                        </div>
+                                        <div class="position-relative">
+                                            <div style="position: relative; overflow: hidden; border-radius: 4px; width: 944px; max-width: 100%; box-shadow: 0 2px 8px rgba(0,0,0,0.2); background-color: white; padding: 24px 24px 16px 24px;">
+                                                <!-- Close button -->
+                                                <div style="position: absolute; top: 8px; right: 12px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#6c757d" viewBox="0 0 16 16">
+                                                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                                                    </svg>
+                                                </div>
+                                                
+                                                <!-- Content layout -->
+                                                <div style="display: flex; flex-direction: row; gap: 24px;">
+                                                    <!-- Image (if available) -->
+                                                    ${baseContent.image_url_tablet || baseContent.image_url ? 
+                                                        `<div style="flex-shrink: 0;">
+                                                            <img src="${baseContent.image_url_tablet || baseContent.image_url}" alt="${bannerName}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 4px;">
+                                                        </div>` : ''
+                                                    }
+                                                    
+                                                    <!-- Text content -->
+                                                    <div style="display: flex; flex-direction: column; flex-grow: 1; max-width: ${baseContent.image_url ? 'calc(100% - 124px)' : '100%'};">
+                                                        ${bannerContent.title ? 
+                                                            `<h3 style="color: #212529; font-weight: bold; margin-bottom: 8px; font-size: 18px; line-height: 1.2;">${bannerContent.title}</h3>` : ''
+                                                        }
+                                                        ${bannerContent.description ? 
+                                                            `<p style="color: #6c757d; font-size: 16px; line-height: 1.3; font-weight: 500; margin-bottom: 16px;">${bannerContent.description}</p>` : ''
+                                                        }
+                                                        
+                                                        <!-- Buttons -->
+                                                        <div style="display: flex; gap: 12px; margin-top: auto;">
+                                                            ${bannerContent.button ? 
+                                                                `<button class="btn btn-primary" style="font-weight: 500; padding: 8px 16px; min-height: 38px;">${bannerContent.button}</button>` : ''
+                                                            }
+                                                            ${bannerContent.button_2_text ? 
+                                                                `<button class="btn btn-light" style="font-weight: 500; padding: 8px 16px; min-height: 38px;">${bannerContent.button_2_text}</button>` : ''
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            } else {
+                                // For other layouts, just show a simple preview
+                                previewHTML += `
+                                    <div class="device-preview">
+                                        <div class="device-label">
+                                            <span class="device-icon">📱</span> Default Preview
+                                        </div>
+                                        <div class="mt-2">
+                                            ${bannerContent.title ? `<div class="fw-bold">${bannerContent.title}</div>` : ''}
+                                            ${bannerContent.description ? `<div>${bannerContent.description}</div>` : ''}
+                                            
+                                            ${baseContent.image_url ? 
+                                                `<img src="${baseContent.image_url}" alt="${bannerName}" class="banner-image">` : ''
+                                            }
+                                            
+                                            ${bannerContent.button || baseContent.button ? 
+                                                `<div class="mt-2">
+                                                    <button class="btn btn-sm btn-primary">${bannerContent.button || baseContent.button || 'Button'}</button>
+                                                    ${bannerContent.button_2_text ? `<button class="btn btn-sm btn-outline-secondary ms-2">${bannerContent.button_2_text}</button>` : ''}
+                                                </div>` : ''
+                                            }
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                            
+                            // Close device previews container
+                            previewHTML += `</div>`;
+                            
+                            bannerPreview.innerHTML = previewHTML;
+                            
+                            // Add click event to show modal with full banner details
+                            bannerPreview.addEventListener('click', () => {
+                                showBannerModal(banner, bannerValue);
+                            });
+                            
+                            outputItem.appendChild(bannerPreview);
+                        } catch (e) {
+                            console.error(`Error parsing banner value for ${bannerName}:`, e);
+                        }
+                    }
+                });
+                
+                // Add split info
+                const splitInfo = document.createElement('div');
+                splitInfo.className = 'split-info';
+                splitInfo.innerHTML = `Split based on: <strong>${rule.splitOn}</strong>, Seed: ${rule.seed}`;
+                outputsContainer.appendChild(splitInfo);
+                
+                ruleContent.appendChild(outputsContainer);
+                rulesContainer.appendChild(ruleCard);
+            }
+            
+            function showBannerModal(banner, bannerValue) {
+                const modalContent = document.getElementById('modal-banner-content');
+                const modal = new bootstrap.Modal(document.getElementById('banner-modal'));
+                
+                // Get default language or first available
+                const defaultLang = bannerValue.default_override || 'en';
+                const bannerContent = bannerValue.overrides[defaultLang] || {};
+                const baseContent = bannerValue.base || {};
+                
+                let modalHTML = `
+                    <h4>${banner.label} (ID: ${banner.id})</h4>
+                `;
+                
+                // Check if this is a layout_generic banner
+                if (baseContent.layout === 'layout_generic') {
+                    modalHTML += `
+                        <div class="device-previews">
+                            <!-- Mobile preview -->
+                            <div class="device-preview">
+                                <div class="device-label">
+                                    <span class="device-icon">📱</span> Mobile (414px)
+                                </div>
+                                <div class="modal-banner-preview position-relative" style="padding: 0; overflow: hidden; border-radius: 4px; width: 414px; max-width: 100%; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+                                    ${baseContent.image_url ? 
+                                        `<img src="${baseContent.image_url}" alt="${banner.label}" class="w-100" style="filter: brightness(0.9); width: 414px; object-fit: cover; object-position: top left;">` : 
+                                        `<div style="height: 168px; background-color: #333; width: 414px;"></div>`
+                                    }
+                                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; padding: 0 16px; display: flex; flex-direction: column; justify-content: flex-start;">
+                                        ${bannerContent.title ? 
+                                            `<div style="margin-top: 40px; max-width: 214px; text-align: left;">
+                                                <h3 style="color: white; font-weight: bold; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); margin-bottom: 8px; font-size: 16px; line-height: 1.2;">${bannerContent.title}</h3>
+                                            </div>` : ''
+                                        }
+                                        ${bannerContent.description ? 
+                                            `<div style="max-width: 214px; text-align: left;">
+                                                <p style="color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); font-size: 14px; line-height: 1.3; font-weight: 500;">${bannerContent.description}</p>
+                                            </div>` : ''
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Tablet preview -->
+                            <div class="device-preview">
+                                <div class="device-label">
+                                    <span class="device-icon">📋</span> Tablet (944px)
+                                </div>
+                                <div class="modal-banner-preview position-relative" style="padding: 0; overflow: hidden; border-radius: 4px; width: 944px; max-width: 100%; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+                                    ${baseContent.image_url_tablet || baseContent.image_url ? 
+                                        `<img src="${baseContent.image_url_tablet || baseContent.image_url}" alt="${banner.label}" class="w-100" style="filter: brightness(0.9); width: 944px; height: 168px; object-fit: cover; object-position: top left;">` : 
+                                        `<div style="height: 168px; background-color: #333; width: 944px;"></div>`
+                                    }
+                                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; padding: 0 24px; display: flex; flex-direction: column; justify-content: flex-start;">
+                                        ${bannerContent.title ? 
+                                            `<div style="margin-top: 40px; max-width: 400px; text-align: left;">
+                                                <h3 style="color: white; font-weight: bold; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); margin-bottom: 8px; font-size: 18px; line-height: 1.2;">${bannerContent.title}</h3>
+                                            </div>` : ''
+                                        }
+                                        ${bannerContent.description ? 
+                                            `<div style="max-width: 400px; text-align: left;">
+                                                <p style="color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); font-size: 16px; line-height: 1.3; font-weight: 500;">${bannerContent.description}</p>
+                                            </div>` : ''
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else if (baseContent.layout === 'layout_closable') {
+                    modalHTML += `
+                        <div class="device-previews">
+                            <!-- Mobile preview -->
+                            <div class="device-preview">
+                                <div class="device-label">
+                                    <span class="device-icon">📱</span> Mobile (414px)
+                                </div>
+                                <div class="modal-banner-preview position-relative" style="padding: 0; overflow: hidden; border-radius: 4px; width: 414px; max-width: 100%; box-shadow: 0 2px 8px rgba(0,0,0,0.2); background-color: white; padding: 24px 16px 16px 16px;">
+                                    <!-- Close button -->
+                                    <div style="position: absolute; top: 8px; right: 12px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#6c757d" viewBox="0 0 16 16">
+                                            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                                        </svg>
+                                    </div>
+                                    
+                                    <!-- Content layout -->
+                                    <div style="display: flex; flex-direction: row; gap: 16px;">
+                                        <!-- Image (if available) -->
+                                        ${baseContent.image_url ? 
+                                            `<div style="flex-shrink: 0;">
+                                                <img src="${baseContent.image_url}" alt="${banner.label}" style="width: 88px; height: 88px; object-fit: cover; border-radius: 4px;">
+                                            </div>` : ''
+                                        }
+                                        
+                                        <!-- Text content -->
+                                        <div style="display: flex; flex-direction: column; flex-grow: 1; max-width: ${baseContent.image_url ? 'calc(100% - 104px)' : '100%'};">
+                                            ${bannerContent.title ? 
+                                                `<h3 style="color: #212529; font-weight: bold; margin-bottom: 8px; font-size: 16px; line-height: 1.2;">${bannerContent.title}</h3>` : ''
+                                            }
+                                            ${bannerContent.description ? 
+                                                `<p style="color: #6c757d; font-size: 14px; line-height: 1.3; font-weight: 500; margin-bottom: 16px;">${bannerContent.description}</p>` : ''
+                                            }
+                                            
+                                            <!-- Buttons -->
+                                            <div style="display: flex; gap: 8px; margin-top: auto;">
+                                                ${bannerContent.button ? 
+                                                    `<button class="btn btn-sm btn-primary" style="font-weight: 500; padding: 6px 12px; min-height: 32px;">${bannerContent.button}</button>` : ''
+                                                }
+                                                ${bannerContent.button_2_text ? 
+                                                    `<button class="btn btn-sm btn-light" style="font-weight: 500; padding: 6px 12px; min-height: 32px;">${bannerContent.button_2_text}</button>` : ''
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Tablet preview -->
+                            <div class="device-preview">
+                                <div class="device-label">
+                                    <span class="device-icon">📋</span> Tablet (944px)
+                                </div>
+                                <div class="modal-banner-preview position-relative" style="padding: 0; overflow: hidden; border-radius: 4px; width: 944px; max-width: 100%; box-shadow: 0 2px 8px rgba(0,0,0,0.2); background-color: white; padding: 24px 24px 16px 24px;">
+                                    <!-- Close button -->
+                                    <div style="position: absolute; top: 8px; right: 12px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#6c757d" viewBox="0 0 16 16">
+                                            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                                        </svg>
+                                    </div>
+                                    
+                                    <!-- Content layout -->
+                                    <div style="display: flex; flex-direction: row; gap: 24px;">
+                                        <!-- Image (if available) -->
+                                        ${baseContent.image_url_tablet || baseContent.image_url ? 
+                                            `<div style="flex-shrink: 0;">
+                                                <img src="${baseContent.image_url_tablet || baseContent.image_url}" alt="${banner.label}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 4px;">
+                                            </div>` : ''
+                                        }
+                                        
+                                        <!-- Text content -->
+                                        <div style="display: flex; flex-direction: column; flex-grow: 1; max-width: ${baseContent.image_url ? 'calc(100% - 124px)' : '100%'};">
+                                            ${bannerContent.title ? 
+                                                `<h3 style="color: #212529; font-weight: bold; margin-bottom: 8px; font-size: 18px; line-height: 1.2;">${bannerContent.title}</h3>` : ''
+                                            }
+                                            ${bannerContent.description ? 
+                                                `<p style="color: #6c757d; font-size: 16px; line-height: 1.3; font-weight: 500; margin-bottom: 16px;">${bannerContent.description}</p>` : ''
+                                            }
+                                            
+                                            <!-- Buttons -->
+                                            <div style="display: flex; gap: 12px; margin-top: auto;">
+                                                ${bannerContent.button ? 
+                                                    `<button class="btn btn-primary" style="font-weight: 500; padding: 8px 16px; min-height: 38px;">${bannerContent.button}</button>` : ''
+                                                }
+                                                ${bannerContent.button_2_text ? 
+                                                    `<button class="btn btn-light" style="font-weight: 500; padding: 8px 16px; min-height: 38px;">${bannerContent.button_2_text}</button>` : ''
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    modalHTML += `<div class="modal-banner-preview">`;
+                    
+                    if (bannerContent.title || bannerContent.description) {
+                        modalHTML += `
+                            <div class="mb-3">
+                                ${bannerContent.title ? `<h5>${bannerContent.title}</h5>` : ''}
+                                ${bannerContent.description ? `<p>${bannerContent.description}</p>` : ''}
+                            </div>
+                        `;
+                    }
+                    
+                    if (baseContent.image_url) {
+                        modalHTML += `
+                            <img src="${baseContent.image_url}" alt="${banner.label}" class="modal-banner-image">
+                        `;
+                    }
+                    
+                    if (bannerContent.button || baseContent.button || bannerContent.button_2_text) {
+                        modalHTML += `<div class="modal-banner-buttons">`;
+                        
+                        if (bannerContent.button || baseContent.button) {
+                            modalHTML += `<button class="btn btn-primary">${bannerContent.button || baseContent.button || 'Button'}</button>`;
+                        }
+                        
+                        if (bannerContent.button_2_text) {
+                            modalHTML += `<button class="btn btn-outline-light ms-2">${bannerContent.button_2_text}</button>`;
+                        }
+                        
+                        modalHTML += `</div>`;
+                    }
+                    
+                    modalHTML += `</div>`;
+                }
+                
+                // Add technical details
+                modalHTML += `
+                    <div class="mt-4">
+                        <h5>Technical Details</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <tbody>
+                                    ${baseContent.layout ? `<tr><td>Layout</td><td>${baseContent.layout}</td></tr>` : ''}
+                                    ${baseContent.ipm ? `<tr><td>IPM</td><td>${baseContent.ipm}</td></tr>` : ''}
+                                    ${baseContent.link ? `<tr><td>Link</td><td><code>${baseContent.link}</code></td></tr>` : ''}
+                                    ${baseContent.button_2_link ? `<tr><td>Secondary Link</td><td><code>${baseContent.button_2_link}</code></td></tr>` : ''}
+                                    ${baseContent.text_color ? `<tr><td>Text Color</td><td><span style="color:${baseContent.text_color}">■</span> ${baseContent.text_color}</td></tr>` : ''}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <h5>Available Languages</h5>
+                        <div class="d-flex flex-wrap">
+                            ${Object.keys(bannerValue.overrides || {}).map(lang => 
+                                `<span class="badge bg-secondary m-1">${lang}</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                `;
+                
+                modalContent.innerHTML = modalHTML;
+                modal.show();
+            }
+            
+            function setupSearch() {
+                const searchInput = document.getElementById('search-input');
+                searchInput.addEventListener('input', filterRules);
+            }
+            
+            function setupFilterButtons() {
+                const filterButtons = document.querySelectorAll('[data-filter]');
+                const filterTags = document.getElementById('filter-tags');
+                
+                filterButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const filter = button.dataset.filter;
+                        
+                        // Check if this filter is already active
+                        const existingTag = document.querySelector(`.filter-badge[data-filter="${filter}"]`);
+                        if (existingTag) return;
+                        
+                        // Add filter tag
+                        const tag = document.createElement('span');
+                        tag.className = 'badge filter-badge m-1';
+                        tag.dataset.filter = filter;
+                        tag.innerHTML = `${filter} <i class="bi bi-x"></i>`;
+                        tag.addEventListener('click', () => {
+                            tag.remove();
+                            filterRules();
+                        });
+                        
+                        filterTags.appendChild(tag);
+                        filterRules();
+                    });
+                });
+                
+                // Check if expand/collapse buttons already exist
+                if (!document.getElementById('expand-all')) {
+                    // Add expand/collapse all button
+                    const searchContainer = document.querySelector('.search-container');
+                    const expandCollapseRow = document.createElement('div');
+                    expandCollapseRow.className = 'row mb-3';
+                    expandCollapseRow.innerHTML = `
+                        <div class="col-12">
+                            <button id="expand-all" class="btn btn-sm btn-outline-primary me-2">Expand All</button>
+                            <button id="collapse-all" class="btn btn-sm btn-outline-secondary">Collapse All</button>
+                        </div>
+                    `;
+                    searchContainer.appendChild(expandCollapseRow);
+                    
+                    // Add event listeners for expand/collapse all
+                    document.getElementById('expand-all').addEventListener('click', () => {
+                        document.querySelectorAll('.rule-content').forEach(content => {
+                            content.style.display = 'block';
+                        });
+                        document.querySelectorAll('.rule-toggle').forEach(toggle => {
+                            toggle.classList.add('expanded');
+                        });
+                        document.querySelectorAll('.rule-card').forEach(card => {
+                            card.classList.add('expanded');
+                        });
+                    });
+                    
+                    document.getElementById('collapse-all').addEventListener('click', () => {
+                        document.querySelectorAll('.rule-content').forEach(content => {
+                            content.style.display = 'none';
+                        });
+                        document.querySelectorAll('.rule-toggle').forEach(toggle => {
+                            toggle.classList.remove('expanded');
+                        });
+                        document.querySelectorAll('.rule-card').forEach(card => {
+                            card.classList.remove('expanded');
+                        });
+                    });
+                }
+            }
+            
+            function filterRules() {
+                const searchTerm = document.getElementById('search-input').value.toLowerCase();
+                const filterTags = Array.from(document.querySelectorAll('.filter-badge')).map(tag => tag.dataset.filter);
+                const ruleCards = document.querySelectorAll('.rule-card');
+                
+                ruleCards.forEach(card => {
+                    const description = card.querySelector('.rule-description').textContent.toLowerCase();
+                    const conditions = Array.from(card.querySelectorAll('.condition')).map(c => c.textContent.toLowerCase());
+                    const outputs = Array.from(card.querySelectorAll('.output-item')).map(o => o.textContent.toLowerCase());
+                    
+                    // Check if matches search term
+                    const matchesSearch = searchTerm === '' || 
+                        description.includes(searchTerm) || 
+                        conditions.some(c => c.includes(searchTerm)) || 
+                        outputs.some(o => o.includes(searchTerm));
+                    
+                    // Check if matches all filter tags
+                    const matchesFilters = filterTags.length === 0 || 
+                        filterTags.every(filter => 
+                            conditions.some(c => c.includes(filter.toLowerCase()))
+                        );
+                    
+                    card.style.display = (matchesSearch && matchesFilters) ? 'block' : 'none';
+                    
+                    // Auto-expand matching rules when filtering
+                    if (matchesSearch && matchesFilters && (searchTerm !== '' || filterTags.length > 0)) {
+                        const content = card.querySelector('.rule-content');
+                        const toggle = card.querySelector('.rule-toggle');
+                        content.style.display = 'block';
+                        toggle.classList.add('expanded');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
